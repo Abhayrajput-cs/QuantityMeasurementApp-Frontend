@@ -5,6 +5,8 @@ import { firstValueFrom } from 'rxjs';
 import { API_BASE_URL, AUTH_TOKEN_STORAGE_KEY } from '../app.constants';
 import { AuthUser } from '../measurement-data';
 
+
+
 type LoginResponse = { token: string };
 type JwtPayload = {
   sub?: string;
@@ -23,28 +25,118 @@ export class AuthService {
   readonly isAdmin = computed(() => this.userState()?.role === 'ROLE_ADMIN');
 
   //LoginCode LOgic
-  async login(email: string, password: string): Promise<void> {
-  const token = await firstValueFrom(
-    this.http.post(`${API_BASE_URL}/api/v1/users/login`, { email, password }, { responseType: 'text' })
-  );
+//   async login(email: string, password: string): Promise<void> {
+//   try {
+//     const token = await firstValueFrom(
+//       this.http.post(
+//         `${API_BASE_URL}/api/v1/users/login`,
+//         { email, password },
+//         { responseType: 'text' }
+//       )
+//     );
 
-  this.storeToken(token);
+//     this.storeToken(token); // ✅ only runs if success
+
+//   } catch (error: any) {
+//     console.error("Login failed:", error);
+
+//     // 🔥 show backend message
+//     const message = error?.error || "Login failed";
+//     alert(message);
+
+//     // ❌ DO NOT call storeToken here
+//   }
+// }
+
+
+async login(email: string, password: string): Promise<void> {
+
+  // 🔥 FRONTEND VALIDATION
+  if (!email || !password) {
+    alert("Email and password are required");
+    return;
+  }
+
+  try {
+    const token = await firstValueFrom(
+      this.http.post(
+        `${API_BASE_URL}/api/v1/users/login`,
+        { email, password },
+        { responseType: 'text' }
+      )
+    );
+
+    this.storeToken(token);
+
+  } catch (error: any) {
+
+    console.log("ERROR FULL:", error);
+
+    let message = "Something went wrong";
+
+    if (typeof error.error === 'string') {
+      message = error.error;
+    } else if (error.status === 0) {
+      message = "Email or password incorrect, or server not reachable";
+    }
+
+    alert(message);
+  }
+}
+private isValidEmail(email: string): boolean {
+  const emailRegex = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$/;
+  return emailRegex.test(email);
+}
+
+private isValidPassword(password: string): boolean {
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  return passwordRegex.test(password);
 }
    //Register Code logic
- async register(email: string, password: string): Promise<void> {
-  await firstValueFrom(
-    this.http.post(`${API_BASE_URL}/api/v1/users/register`, {
-      name: email.split('@')[0], 
-      email,
-      password
-    })
-  );
+async register(email: string, password: string): Promise<void> {
+
+  if (!email || !password) {
+    alert("Email and password required");
+    return;
+  }
+
+  if (!this.isValidEmail(email)) {
+    alert("Invalid email format");
+    return;
+  }
+
+  if (!this.isValidPassword(password)) {
+    alert("Password must be 8+ chars with upper, lower, number, special char");
+    return;
+  }
+
+  try {
+    const res = await firstValueFrom(
+      this.http.post(`${API_BASE_URL}/api/v1/users/register`, {
+        name: email.split('@')[0],
+        email,
+        password
+      }, { responseType: 'text' })
+    );
+
+    alert(res);
+
+  } catch (error: any) {
+    alert(error?.error || "Registration failed");
+  }
 }
 
-  storeToken(token: string): void {
-    localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
-    this.userState.set(this.parseToken(token));
+
+ storeToken(token: string): void {
+  if (!token || token.split('.').length !== 3) {
+    console.error("Invalid token received:", token);
+    return; // 🔥 STOP here
   }
+
+  localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
+  this.userState.set(this.parseToken(token));
+}
 
   logout(redirect = true): void {
     localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
@@ -55,8 +147,7 @@ export class AuthService {
   }
 
   googleLogin(): void {
-    window.location.href = `${API_BASE_URL}/oauth2/authorization/google`;
-  }
+window.location.href = "http://localhost:8080/oauth2/authorization/google";  }
 
   private readStoredUser(): AuthUser | null {
     const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
@@ -76,12 +167,20 @@ export class AuthService {
   }
 
 private parseToken(token: string): AuthUser {
+  if (!token || token.split('.').length !== 3) {
+    throw new Error('Invalid JWT token');
+  }
+
   const [, payloadPart] = token.split('.');
-  const decoded = JSON.parse(atob(payloadPart));
+
+  // 🔥 Base64URL → Base64
+  const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+
+  const decoded = JSON.parse(atob(base64));
 
   return {
-    email: payloadPart ? decoded.sub : '',
-    role: 'ROLE_USER', // ✅ default (backend doesn't send role)
+    email: decoded.sub || '',
+    role: 'ROLE_USER',
     token,
     expiresAt: decoded.exp * 1000
   };

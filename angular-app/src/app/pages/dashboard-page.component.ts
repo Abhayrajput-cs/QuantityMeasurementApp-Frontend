@@ -197,9 +197,9 @@ export class DashboardPageComponent {
   }
 
   isActionDisabled(action: DashboardAction): boolean {
-    return action === 'calculate' &&
-      !measurementCatalog[this.selectedType()].supportsArithmetic;
-  }
+  return action === 'calculate' &&
+    !measurementCatalog[this.selectedType()].supportsArithmetic;
+}
 
   unitTrack(_: number, unit: UnitOption): string {
     return unit.value;

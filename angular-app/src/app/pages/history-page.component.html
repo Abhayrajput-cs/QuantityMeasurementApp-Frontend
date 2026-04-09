@@ -140,7 +140,7 @@
                   <td>{{ record.operation || '-' }}</td>
                   <td>{{ record.operand1 || '-' }}</td>
                   <td>{{ record.operand2 || '-' }}</td>
-                  <td>{{ record.result || '-' }}</td>
+                  <td>{{ record.result !== null && record.result !== undefined ? record.result : '-' }}</td>
                   <td>{{ record.error || '-' }}</td>
                   <td>{{ formatType(record.measurementType) }}</td>
                   <td>{{ formatWhen(record.createdAt) }}</td>

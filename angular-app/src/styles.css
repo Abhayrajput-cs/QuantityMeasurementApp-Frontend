@@ -607,8 +607,16 @@ a {
   border-radius: 18px;
   border: 1px solid rgba(83, 143, 255, 0.45);
   background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  /* ❌ remove this */
+  /* grid-template-columns: repeat(4, minmax(0, 1fr)); */
+
+  /* ✅ add this */
+  grid-template-columns: 1fr;     /* single column */
+  grid-template-rows: repeat(4, auto); /* 4 rows */
+
   gap: 6px;
   padding: 6px;
   align-self: end;
