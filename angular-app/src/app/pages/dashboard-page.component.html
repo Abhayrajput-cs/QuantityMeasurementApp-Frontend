@@ -6,7 +6,7 @@
         <button class="theme-toggle theme-toggle--compact" type="button" (click)="toggleTheme()">
           <span class="theme-toggle__text">{{ darkMode() ? 'Light Mode' : 'Dark Mode' }}</span>
         </button>
-        <span class="user-pill">{{ user()?.email }}</span>
+        <span class="user-pill">{{ getUsername() }}</span>
         <a class="secondary-button history-button" routerLink="/history">
           History
         </a>
@@ -68,7 +68,7 @@
           [disabled]="isActionDisabled('calculate')"
           (click)="setAction('calculate')"
         >
-          Calculator
+          Dashboard
         </button>
       </div>
 

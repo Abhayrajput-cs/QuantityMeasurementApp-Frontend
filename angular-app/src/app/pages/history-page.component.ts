@@ -61,21 +61,33 @@ export class HistoryPageComponent {
       );
 
       this.records = (response ?? []).map((item: any) => ({
-  id: item.id,
-  operation: item.operation,
-  operand1: `${item.thisValue} ${item.thisUnit}`,
-  operand2: `${item.thatValue} ${item.thatUnit}`,
-  result: item.resultValue, // ✅ only value
 
-  // ✅ REQUIRED FIELDS (FIXED)
-  error: null,
-  operationType: item.operation,
-  isError: false,
+        id: item.id,
+        operation: item.operation,
 
-  measurementType: item.thisMeasurementType,
-  createdAt: item.createdAt ?? null,
-  updatedAt: item.updatedAt ?? null
-}));
+        // ✅ operand1 always has value
+        operand1: `${item.thisValue} ${item.thisUnit}`,
+
+        // ✅ FIXED: no more "null UNIT"
+        operand2:
+          item.thatValue !== null &&
+          item.thatValue !== undefined &&
+          item.thatValue !== ''
+            ? `${item.thatValue} ${item.thatUnit}`
+            : (item.thatUnit ?? null),
+
+        result: item.resultValue,
+
+        // required fields
+        error: null,
+        operationType: item.operation,
+        isError: false,
+
+        measurementType: item.thisMeasurementType,
+        createdAt: item.createdAt ?? null,
+        updatedAt: item.updatedAt ?? null
+
+      }));
 
     } catch (error) {
       this.errorMessage = "Failed to load measurement history";
@@ -94,45 +106,43 @@ export class HistoryPageComponent {
   }
 
   // ================= DELETE SINGLE =================
- async deleteRecord(id: number) {
-  console.log("Deleting ID:", id);   // 👈 MUST CHECK
+  async deleteRecord(id: number) {
+    console.log("Deleting ID:", id);
 
-  const confirmDelete = window.confirm("Are you sure?");
-  if (!confirmDelete) return;
+    const confirmDelete = window.confirm("Are you sure?");
+    if (!confirmDelete) return;
 
-  try {
-    await this.quantityApi.delete(id);
-    await this.loadMeasurements();
-  } catch (error) {
-    console.error(error);
+    try {
+      await this.quantityApi.delete(id);
+      await this.loadMeasurements();
+    } catch (error) {
+      console.error(error);
+    }
   }
-}
 
   // ================= DELETE ALL / FILTERED =================
   async deleteAll() {
 
-  const confirmDelete = window.confirm("Delete selected records?");
-  if (!confirmDelete) return;
+    const confirmDelete = window.confirm("Delete selected records?");
+    if (!confirmDelete) return;
 
-  try {
+    try {
 
-    if (this.selectedOperation || this.selectedType) {
-      await this.quantityApi.deleteFiltered(
-        this.selectedOperation,
-        this.selectedType
-      );
-    } else {
-      await this.quantityApi.deleteAll();
+      if (this.selectedOperation || this.selectedType) {
+        await this.quantityApi.deleteFiltered(
+          this.selectedOperation,
+          this.selectedType
+        );
+      } else {
+        await this.quantityApi.deleteAll();
+      }
+
+      await this.loadMeasurements();
+
+    } catch (error: any) {
+      console.error("Delete all error:", error);
+      this.errorMessage = "Failed to delete records";
     }
-
-    // ✅ IMPORTANT → reload data
-    await this.loadMeasurements();
-
-  } catch (error: any) {
-    console.error("Delete all error:", error);
-    this.errorMessage = "Failed to delete records";
   }
-}
-
 
 }

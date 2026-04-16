@@ -139,16 +139,15 @@ export class DashboardPageComponent {
       };
 
       // ✅ COMPARE
-      if (this.selectedAction() === 'compare') {
-        const response = await this.quantityApi.compare(payload);
+   if (this.selectedAction() === 'compare') {
+  const response = await this.quantityApi.compare(payload);
 
-        this.compareSummary =
-          response.resultUnit === 'TRUE'
-            ? 'Value 1 = Value 2'
-            : 'Value 1 != Value 2';
+  this.compareSummary =
+    // ✅ FIXED
+response.resultValue === 1 ? '✅ Values are EQUAL' : '❌ Values are NOT EQUAL'
 
-        return;
-      }
+  return;
+}
 
       // ✅ CALCULATE
       const response = await this.quantityApi.calculate(
@@ -204,4 +203,8 @@ export class DashboardPageComponent {
   unitTrack(_: number, unit: UnitOption): string {
     return unit.value;
   }
+  getUsername(): string {
+  const email = this.user()?.email;
+  return email ? email.split('@')[0] : '';
+}
 }

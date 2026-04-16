@@ -77,20 +77,27 @@ export class AuthPageComponent implements OnInit {
   }
 
   async submitSignup(): Promise<void> {
-    this.clearFeedback();
-    this.submitting = true;
+  this.clearFeedback();
+  this.submitting = true;
 
-    try {
-      const email = this.signupEmail.trim();
-      await this.authService.register(email, this.signupPassword);
-      await this.authService.login(email, this.signupPassword);
-      await this.router.navigate(['/dashboard']);
-    } catch (error) {
-      this.signupFeedback = getApiErrorMessage(error, 'Registration failed.');
-    } finally {
-      this.submitting = false;
-    }
+  try {
+    const email = this.signupEmail.trim();
+
+    await this.authService.register(email, this.signupPassword);
+
+    // ✅ DO NOT LOGIN HERE
+    // just redirect to login page
+
+    this.signupFeedback = "User Already Exists. Please login.";
+
+    await this.router.navigate(['/login']);
+
+  } catch (error) {
+    this.signupFeedback = getApiErrorMessage(error, 'Registration failed.');
+  } finally {
+    this.submitting = false;
   }
+}
 
   continueWithGoogle(): void {
     this.clearFeedback();

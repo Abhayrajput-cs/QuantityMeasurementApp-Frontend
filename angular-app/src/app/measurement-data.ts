@@ -59,7 +59,7 @@ export const measurementCatalog: Record<MeasurementType, MeasurementDefinition> 
       { label: 'Millimeter', value: 'MILLIMETER' },
        { label: 'Meter', value: 'METER' },
       { label: 'Centimeter', value: 'CENTIMETER' },
-      { label: 'Inch', value: 'INCHES' },
+      { label: 'Inch', value: 'INCH' },
       { label: 'Feet', value: 'FEET' },
       { label: 'Yard', value: 'YARDS' },
       { label: 'Kilometer', value: 'KILOMETER' }
